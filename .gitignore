@@ -1,0 +1,16 @@
+# Created by pytest automatically.
+*.mp4
+/venv/
+/__pycache__
+/.idea
+/Facial_expressions/.idea
+/Facial_expressions/__pycache__
+/Facial_expressions/venv
+/Facial_expressions/.pytest_cache
+/venv
+/Facial_expressions/.pytest_cache
+/Facial_expressions/.idea
+/Facialexpressions
+/Facial_expressions/train
+/Facial_expressions/test
+
