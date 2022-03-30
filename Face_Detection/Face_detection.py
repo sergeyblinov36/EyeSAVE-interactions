@@ -40,11 +40,11 @@ encodeListKnown = findEncodings(images)
 
 # cap = cv2.VideoCapture("test2.mp4")
 # cap = cv2.VideoCapture(0)
-def face_detection():
+def face_detection(source):
 # while True:
     # success, img = cap.read()
     print("1")
-    img = camera.getframes()
+    img = camera.getframes(source)
     # resize and change colour of the live stream
     imgS = cv2.resize(img, (0, 0), None, 0.25, 0.25)
     imgS = cv2.cvtColor(imgS, cv2.COLOR_BGR2RGB)

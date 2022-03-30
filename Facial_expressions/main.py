@@ -24,11 +24,11 @@ import imutils
 #                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 # if __name__ == '__main__':
-def get_expression():
+def get_expression(source):
     # camera.source("test2.mp4")
     # print("face")
     # while True:
-    frame, pred = Facial_expressions.image_manipulation.get_frame()
+    frame, pred = Facial_expressions.image_manipulation.get_frame(source)
     frame = imutils.resize(frame, width=600)
     cv2.imshow('Webcam', frame)
     cv2.waitKey(1)

@@ -10,6 +10,7 @@ import math
 from Face_Detection.Face_detection import face_detection
 # from camera import getframes
 from interaction.Interaction import save_interaction
+from interaction.Interaction import determine_interaction
 
 protopath = "Distance/MobileNetSSD_deploy.prototxt"
 modelpath = "Distance/MobileNetSSD_deploy.caffemodel"
@@ -92,7 +93,7 @@ def get_distance():
 
     while True:
 
-        frame = camera.getframes()
+        frame = camera.getframes(1)
         frame = imutils.resize(frame, width=600)
         total_frames = total_frames + 1
 
@@ -152,27 +153,42 @@ def get_distance():
             dx, dy = p1[0] - p2[0], p1[1] - p2[1]
             distance = math.sqrt(dx * dx + dy * dy)
             if distance < 400.0:
-                temp = []
+                # temp = []
                 status = 1
                 print("id1 = {id1}".format(id1=id1))
                 print("id2 = {id2}".format(id2=id2))
                 print("childid1 = {childid1}".format(childid1=children))
 
                 while count < 2:
-                    temp = face_detection()
-                    if not children or temp != children[0]:
-                        children.append(temp)
-                        print(children[0])
-                        print("---------")
-                        print(temp)
-                        count = count +1
-                prediction = get_expression()
-                if prediction == "empty" or prediction == "Neutral":
-                    interaction = interaction
-                elif prediction == "Happy":
-                    interaction = interaction + 1
-                else:
-                    interaction = interaction - 1
+                    temp1 = face_detection(2)
+                    temp2 = face_detection(3)
+                    if not children or temp1 != children[0]:
+                        if temp1 != 0:
+                            children.append(temp1)
+                            print(children[0])
+                            print("---------")
+                            print(temp1)
+                            count = count +1
+                    elif not children or temp2 != children[0]:
+                        if temp2 != 0:
+                            children.append(temp2)
+                            print(children[0])
+                            print("---------")
+                            print(temp2)
+                            count = count +1
+                prediction = []
+                prediction1 = get_expression(2)
+                prediction2 = get_expression(3)
+                prediction.append(prediction1)
+                prediction.append(prediction2)
+                interaction_value = determine_interaction(prediction)
+                interaction += interaction_value
+                # if prediction1 == "empty" or prediction1 == "Neutral" or prediction2 == "empty" or prediction2 == "Neutral":
+                #     interaction = interaction
+                # elif prediction1 == "Happy" or prediction1 == "Happy":
+                #     interaction = interaction + 1
+                # else:
+                #     interaction = interaction - 1
                 print(interaction)
                 print("+++++++++")
                 print(dwell_time)

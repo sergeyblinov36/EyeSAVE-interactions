@@ -8,9 +8,9 @@ model = FacialExpressionModel("Facial_expressions/model.json", "Facial_expressio
 font = cv2.FONT_HERSHEY_SIMPLEX
 
 
-def get_frame():
+def get_frame(source):
     # camera.set_source("test2.mp4")
-    fr = camera.getframes()
+    fr = camera.getframes(source)
     gray_fr = cv2.cvtColor(fr, cv2.COLOR_BGR2GRAY)
     # if fr.any():
     #     print("check")

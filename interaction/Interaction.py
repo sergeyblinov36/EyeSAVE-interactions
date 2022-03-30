@@ -25,3 +25,15 @@ def save_interaction(children, startTime, interaction):
          "_videoUrl": ""}
     )
     print(interaction_type)
+
+
+def determine_interaction(prediction):
+    print("in prediction function")
+    for pred in prediction:
+
+        if pred == "empty" or pred == "Neutral":
+            return 0
+        elif pred == "Happy" or pred == "Happy":
+            return 1
+        else:
+            return -1
