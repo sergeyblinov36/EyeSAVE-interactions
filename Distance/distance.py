@@ -11,7 +11,10 @@ from Face_Detection.Face_detection import face_detection
 # from camera import getframes
 from interaction.Interaction import save_interaction
 from interaction.Interaction import determine_interaction
+import time
 
+# protopath = "../EyeSAVE-master/interactionsCopy/Distance/MobileNetSSD_deploy.prototxt"
+# modelpath = "../EyeSAVE-master/interactionsCopy/Distance/MobileNetSSD_deploy.caffemodel"
 protopath = "Distance/MobileNetSSD_deploy.prototxt"
 modelpath = "Distance/MobileNetSSD_deploy.caffemodel"
 detector = cv2.dnn.readNetFromCaffe(prototxt=protopath, caffeModel=modelpath)
@@ -81,7 +84,8 @@ def non_max_suppression_fast(boxes, overlapThresh):
 
 def get_distance():
     # cap = camera.source('test2.mp4')
-    global children, timer
+    global children, timer, slept, finishTime
+    finishTime = datetime.datetime.now().replace(hour=21, minute=45, second=0, microsecond=0)
     count = 0
     print("dis")
     fps_start_time = datetime.datetime.now()
@@ -90,6 +94,7 @@ def get_distance():
     interaction = 0
     status = 0
     startTime = ""
+    slept = 0
 
     while True:
 
@@ -160,25 +165,28 @@ def get_distance():
                 print("childid1 = {childid1}".format(childid1=children))
 
                 while count < 2:
-                    temp1 = face_detection(2)
-                    temp2 = face_detection(3)
+                    temp1 = face_detection(1, 0)
+                    print("8888888888888888888")
+                    temp2 = face_detection(2, 1)
                     if not children or temp1 != children[0]:
                         if temp1 != 0:
                             children.append(temp1)
                             print(children[0])
                             print("---------")
                             print(temp1)
-                            count = count +1
+                            count = count + 1
                     elif not children or temp2 != children[0]:
                         if temp2 != 0:
                             children.append(temp2)
                             print(children[0])
                             print("---------")
                             print(temp2)
-                            count = count +1
+                            count = count + 1
                 prediction = []
-                prediction1 = get_expression(2)
-                prediction2 = get_expression(3)
+                # prediction1 = get_expression(2)
+                # prediction2 = get_expression(3)
+                prediction1 = get_expression(1, 0)
+                prediction2 = get_expression(2, 1)
                 prediction.append(prediction1)
                 prediction.append(prediction2)
                 interaction_value = determine_interaction(prediction)
@@ -203,32 +211,42 @@ def get_distance():
                 cv2.rectangle(frame, (box[2], box[3]), (box[4], box[5]), (0, 0, 255), 2)
             else:
                 cv2.rectangle(frame, (box[2], box[3]), (box[4], box[5]), (0, 255, 0), 2)
-        if not centroid_dict.items():
+        if len(centroid_dict) < 2:
             if status == 1:
-                if objectId not in timer:
-                    print("no one in the frame")
-                    timer[objectId] = 0
+                if slept == 0:
+                    print("going to sleep")
+                    time.sleep(5)
+                    slept = 1
                 else:
-                    curr_time = datetime.datetime.now()
-                    old_time = dtime[objectId]
-                    time_diff = curr_time - old_time
-                    dtime[objectId] = datetime.datetime.now()
-                    sec = time_diff.total_seconds()
-                    timer[objectId] += sec
-                    print(timer[objectId])
-                    if timer[objectId] > 5:
-                        status = 0
-                        count = 0
-                        print(children[0])
-                        print(children[1])
-                        print(dwell_time[objectId])
-                        print(interaction)
-                        print("end of interaction")
-                        save_interaction(children, startTime, interaction)
-                        children.clear()
-                        interaction = 0
-
-
+                    now = datetime.datetime.now()
+                    time_diff = now - dtime[objectId]
+                    duration = time_diff.total_seconds()
+                    int(duration)
+                    save_interaction(children, startTime, interaction, duration)
+                    children.clear()
+                    interaction = 0
+                    count = 0
+                    status = 0
+                    slept = 0
+                # if objectId not in timer:
+                #     print("no one in the frame")
+                #     timer[objectId] = 0
+                # else:
+                #     curr_time = datetime.datetime.now()
+                #     old_time = dtime[objectId]
+                #     time_diff = curr_time - old_time
+                #     dtime[objectId] = datetime.datetime.now()
+                #     sec = time_diff.total_seconds()
+                #     timer[objectId] += sec
+                #     print(timer[objectId])
+                #     if timer[objectId] > 5:
+                #         status = 0
+                #         count = 0
+                #         print(children[0])
+                #         print(children[1])
+                #         print(dwell_time[objectId])
+                #         print(interaction)
+                #         print("end of interaction")
 
         fps_end_time = datetime.datetime.now()
         time_diff = fps_end_time - fps_start_time
@@ -241,12 +259,9 @@ def get_distance():
 
         cv2.putText(frame, fps_text, (5, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 1)
 
-        cv2.imshow("webcam", frame)
+        cv2.imshow("distance", frame)
         key = cv2.waitKey(1)
-        if key == ord('q'):
+        if key == ord('q') or finishTime < datetime.datetime.now():
             break
 
     cv2.destroyAllWindows()
-
-
-# main()

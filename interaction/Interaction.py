@@ -1,30 +1,43 @@
 import pymongo
 import datetime
 from interaction import dbConnection
+import requests
 
 
-def save_interaction(children, startTime, interaction):
+def save_interaction(children, startTime, interaction, duration):
     now = datetime.datetime.now()
-    endTime = now.strftime("%H:%M:%S")
-    date = now.strftime("%d-%m-%Y")
+    endTime = now.strftime("%H:%M")
+    date = now.strftime("%Y-%m-%d")
     db = dbConnection.get_connection()
     event = db["events"]
     if interaction > 0:
-        interaction_type = "positive"
+        interaction_type = "Positive"
     else:
-        interaction_type = "negative"
+        interaction_type = "Negative"
     child1 = int(children[0])
     child2 = int(children[1])
-    event.insert_one(
+    x= event.insert_one(
         {"_date": date,
          "_startTime": startTime,
          "_endTime": endTime,
+         "_duration": duration,
          "_eventType": interaction_type,
          "_child1": child1,
          "_child2": child2,
          "_videoUrl": ""}
     )
     print(interaction_type)
+    # url = "http://localhost:8000/events/"
+    # data1 = {'_date': date,
+    #          '_startTime': startTime,
+    #          '_endTime': endTime,
+    #          '_duration': duration,
+    #          '_eventType': interaction_type,
+    #          '_child1': child1,
+    #          '_child2': child2,
+    #          '_videoUrl': ''}
+    # request = requests.post(url, data=data1)
+    # print(request.text)
 
 
 def determine_interaction(prediction):

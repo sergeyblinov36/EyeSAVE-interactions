@@ -1,24 +1,9 @@
 import pymongo
 from interaction import config
 
-
 client = pymongo.MongoClient(config.mongoConnection)
 
 
 def get_connection():
-
-    # print(client)
-    # תשני לשם הדאטהבייס
-    db = client["EyeSave"]
+    db = client["EyeSAVE_DB"]
     return db
-
-def get_list(role):
-    # תשני לשם הדאטהבייס
-    db = client["EyeSave"]
-    collection = db[role]
-    collection_data = collection.find()
-    mylist = []
-    for item in collection_data:
-        mylist.append(item)
-    # print(mylist)
-    return mylist

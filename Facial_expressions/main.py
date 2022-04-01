@@ -1,4 +1,3 @@
-from flask import Flask, render_template, Response
 import Facial_expressions.image_manipulation
 import camera
 import cv2
@@ -24,13 +23,16 @@ import imutils
 #                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 # if __name__ == '__main__':
-def get_expression(source):
+def get_expression(source,flag):
     # camera.source("test2.mp4")
     # print("face")
     # while True:
     frame, pred = Facial_expressions.image_manipulation.get_frame(source)
     frame = imutils.resize(frame, width=600)
-    cv2.imshow('Webcam', frame)
+    if flag == 0:
+        cv2.imshow('emo1', frame)
+    else:
+        cv2.imshow('emo2', frame)
     cv2.waitKey(1)
 
     return pred

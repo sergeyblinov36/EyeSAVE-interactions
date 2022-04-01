@@ -10,17 +10,16 @@ import imutils
 import camera
 
 # paths
+pathChild = '../EyeSAVE-master/interactionsCopy/Face_Detection/childImgs'
 pathChild = 'Face_Detection/childImgs'
-
-# תשני לשמות של הקולקשן
-
-
 # arrays of images, names and roles(child or staff member)
 c_list = []
 images = []
 id_list = []
 role = []
 childrenList = os.listdir(pathChild)
+global flag
+flag = 0
 # print(childrenList)
 for cl in childrenList:
     # read image from repository
@@ -40,7 +39,7 @@ encodeListKnown = findEncodings(images)
 
 # cap = cv2.VideoCapture("test2.mp4")
 # cap = cv2.VideoCapture(0)
-def face_detection(source):
+def face_detection(source, flag):
 # while True:
     # success, img = cap.read()
     print("1")
@@ -74,7 +73,11 @@ def face_detection(source):
             cv2.putText(img, "unknown", (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
     print(id)
     img = imutils.resize(img, width=600)
-    cv2.imshow('debcam', img)
+    if flag == 0:
+        cv2.imshow('face1', img)
+    else:
+        cv2.imshow('face2', img)
+
     cv2.waitKey(1)
     # if cv2.waitKey(1) & 0xFF == ord('q'):
     #     # break
