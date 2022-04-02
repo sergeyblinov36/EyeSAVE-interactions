@@ -222,7 +222,7 @@ def get_distance():
                     time_diff = now - dtime[objectId]
                     duration = time_diff.total_seconds()
                     int(duration)
-                    save_interaction(children, startTime, interaction, duration)
+                    # save_interaction(children, startTime, interaction, duration)
                     children.clear()
                     interaction = 0
                     count = 0

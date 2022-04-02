@@ -1,6 +1,5 @@
 # Created by pytest automatically.
 *.mp4
-/venv/
 /__pycache__
 /.idea
 /Facial_expressions/.idea

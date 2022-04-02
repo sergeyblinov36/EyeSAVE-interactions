@@ -27,17 +27,17 @@ def save_interaction(children, startTime, interaction, duration):
          "_videoUrl": ""}
     )
     print(interaction_type)
-    # url = "http://localhost:8000/events/"
-    # data1 = {'_date': date,
-    #          '_startTime': startTime,
-    #          '_endTime': endTime,
-    #          '_duration': duration,
-    #          '_eventType': interaction_type,
-    #          '_child1': child1,
-    #          '_child2': child2,
-    #          '_videoUrl': ''}
-    # request = requests.post(url, data=data1)
-    # print(request.text)
+    url = "http://localhost:8000/events/"
+    data1 = {'_date': date,
+             '_startTime': startTime,
+             '_endTime': endTime,
+             '_duration': duration,
+             '_eventType': interaction_type,
+             '_child1': child1,
+             '_child2': child2,
+             '_videoUrl': ''}
+    request = requests.post(url, json=data1)
+    print(request.text)
 
 
 def determine_interaction(prediction):
