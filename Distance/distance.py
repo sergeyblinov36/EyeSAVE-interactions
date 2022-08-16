@@ -1,23 +1,21 @@
-import cv2
 import datetime
+import math
+from itertools import combinations
+import cv2
 import imutils
 import numpy as np
-from Facial_expressions.main import get_expression
+import requests
 import camera
 from Distance.centroidtracker import CentroidTracker
-from itertools import combinations
-import math
 from Face_Detection.Face_detection import face_detection
-# from camera import getframes
-from interaction.Interaction import save_interaction
+from Facial_expressions.main import get_expression
 from interaction.Interaction import determine_interaction
-import time
+from interaction.Interaction import save_interaction
 
-# protopath = "../EyeSAVE-master/interactionsCopy/Distance/MobileNetSSD_deploy.prototxt"
-# modelpath = "../EyeSAVE-master/interactionsCopy/Distance/MobileNetSSD_deploy.caffemodel"
 protopath = "Distance/MobileNetSSD_deploy.prototxt"
 modelpath = "Distance/MobileNetSSD_deploy.caffemodel"
 detector = cv2.dnn.readNetFromCaffe(prototxt=protopath, caffeModel=modelpath)
+# functions that allow the code to run without GPU
 # detector.setPreferableBackend(cv2.dnn.DNN_BACKEND_INFERENCE_ENGINE)
 # detector.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
@@ -83,27 +81,32 @@ def non_max_suppression_fast(boxes, overlapThresh):
 
 
 def get_distance():
-    # cap = camera.source('test2.mp4')
     global children, timer, slept, finishTime
-    finishTime = datetime.datetime.now().replace(hour=21, minute=45, second=0, microsecond=0)
+    settings = requests.get("https://eyesave.herokuapp.com/settings/")
+    endtime = settings.json()
+    finishTime = endtime[1]["_endYard"]
     count = 0
-    print("dis")
     fps_start_time = datetime.datetime.now()
     fps = 0
     total_frames = 0
     interaction = 0
     status = 0
-    startTime = ""
+    startTimeStr = ""
     slept = 0
 
     while True:
 
         frame = camera.getframes(1)
+        if not frame:
+            if status == 1:
+                save_interaction(children, startTimeStr, interaction, duration)
+                return 0
         frame = imutils.resize(frame, width=600)
         total_frames = total_frames + 1
 
+        # Height, Width
         (H, W) = frame.shape[:2]
-
+        print(f'h = {H} , w = {W}')
         blob = cv2.dnn.blobFromImage(frame, 0.007843, (W, H), 127.5)
 
         detector.setInput(blob)
@@ -134,12 +137,14 @@ def get_distance():
             y2 = int(y2)
             cX = int((x1 + x2) / 2.0)
             cY = int((y1 + y2) / 2.0)
+            #  assigns time to each object id in order to calculate the duration of time it is seen on screen
             if objectId not in object_id_list:
                 object_id_list.append(objectId)
                 now = datetime.datetime.now()
                 dtime[objectId] = now
                 dwell_time[objectId] = 0
-                startTime = now.strftime("%H:%M:%S")
+                startTimeStr = now.strftime("%H:%M")
+                startTime = now
             else:
                 curr_time = datetime.datetime.now()
                 old_time = dtime[objectId]
@@ -150,57 +155,35 @@ def get_distance():
 
             centroid_dict[objectId] = (cX, cY, x1, y1, x2, y2)
 
-            # text = "ID: {}".format(objectId)
-            # cv2.putText(frame, text, (x1, y1-5), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 1)
 
         red_zone_list = []
         for (id1, p1), (id2, p2) in combinations(centroid_dict.items(), 2):
             dx, dy = p1[0] - p2[0], p1[1] - p2[1]
             distance = math.sqrt(dx * dx + dy * dy)
-            if distance < 400.0:
-                # temp = []
+            if distance < 140.0:
                 status = 1
-                print("id1 = {id1}".format(id1=id1))
-                print("id2 = {id2}".format(id2=id2))
-                print("childid1 = {childid1}".format(childid1=children))
-
-                while count < 2:
-                    temp1 = face_detection(1, 0)
-                    print("8888888888888888888")
-                    temp2 = face_detection(2, 1)
+                id_start_time = datetime.datetime.now()
+                if count < 2:
+                    temp1 = face_detection(1, 0, p1, p2)
+                    temp2 = face_detection(2, 1, p1, p2)
                     if not children or temp1 != children[0]:
                         if temp1 != 0:
                             children.append(temp1)
-                            print(children[0])
-                            print("---------")
-                            print(temp1)
                             count = count + 1
                     elif not children or temp2 != children[0]:
                         if temp2 != 0:
                             children.append(temp2)
-                            print(children[0])
-                            print("---------")
-                            print(temp2)
                             count = count + 1
-                prediction = []
-                # prediction1 = get_expression(2)
-                # prediction2 = get_expression(3)
-                prediction1 = get_expression(1, 0)
-                prediction2 = get_expression(2, 1)
-                prediction.append(prediction1)
-                prediction.append(prediction2)
-                interaction_value = determine_interaction(prediction)
-                interaction += interaction_value
-                # if prediction1 == "empty" or prediction1 == "Neutral" or prediction2 == "empty" or prediction2 == "Neutral":
-                #     interaction = interaction
-                # elif prediction1 == "Happy" or prediction1 == "Happy":
-                #     interaction = interaction + 1
-                # else:
-                #     interaction = interaction - 1
-                print(interaction)
-                print("+++++++++")
-                print(dwell_time)
-                # print(distance)
+                    id_time_diff = datetime.datetime.now() - id_start_time
+                    id_timer = id_time_diff.total_seconds()
+                if(len(children) > 1):
+                    prediction = []
+                    prediction1 = get_expression(1, 0)
+                    prediction2 = get_expression(2, 1)
+                    prediction.append(prediction1)
+                    prediction.append(prediction2)
+                    interaction_value = determine_interaction(prediction)
+                    interaction += interaction_value
                 if id1 not in red_zone_list:
                     red_zone_list.append(id1)
                 if id2 not in red_zone_list:
@@ -212,41 +195,22 @@ def get_distance():
             else:
                 cv2.rectangle(frame, (box[2], box[3]), (box[4], box[5]), (0, 255, 0), 2)
         if len(centroid_dict) < 2:
-            if status == 1:
-                if slept == 0:
-                    print("going to sleep")
-                    time.sleep(5)
-                    slept = 1
+            if status == 1 and count < 1 and len(children) < 1:
+                if objectId not in timer:
+                    print("no one in the frame")
+                    timer[objectId] = datetime.datetime.now()
+
                 else:
-                    now = datetime.datetime.now()
-                    time_diff = now - dtime[objectId]
-                    duration = time_diff.total_seconds()
-                    int(duration)
-                    # save_interaction(children, startTime, interaction, duration)
-                    children.clear()
-                    interaction = 0
-                    count = 0
-                    status = 0
-                    slept = 0
-                # if objectId not in timer:
-                #     print("no one in the frame")
-                #     timer[objectId] = 0
-                # else:
-                #     curr_time = datetime.datetime.now()
-                #     old_time = dtime[objectId]
-                #     time_diff = curr_time - old_time
-                #     dtime[objectId] = datetime.datetime.now()
-                #     sec = time_diff.total_seconds()
-                #     timer[objectId] += sec
-                #     print(timer[objectId])
-                #     if timer[objectId] > 5:
-                #         status = 0
-                #         count = 0
-                #         print(children[0])
-                #         print(children[1])
-                #         print(dwell_time[objectId])
-                #         print(interaction)
-                #         print("end of interaction")
+                    time_diff = datetime.datetime.now() - timer[objectId]
+                    sec = time_diff.total_seconds()
+                    if sec > 5:
+                        status = 0
+                        count = 0
+                        time_diff = datetime.datetime.now() - startTime
+                        duration = time_diff.total_seconds()
+                        save_interaction(children, startTimeStr, interaction, duration)
+                        interaction = 0
+                        children.clear()
 
         fps_end_time = datetime.datetime.now()
         time_diff = fps_end_time - fps_start_time
@@ -258,10 +222,21 @@ def get_distance():
         fps_text = "FPS: {:.2f}".format(fps)
 
         cv2.putText(frame, fps_text, (5, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 1)
-
+        # cut the frame to only show the children, used for visuals only
+        # if p1[0]<p2[0]:
+        #     if p1[1]<p2[1]:
+        #         frame[p1[0]-50:p2[0]+50, p1[1]-50:p2[1]+50]
+        #     else:
+        #         frame[p1[0] - 50:p2[0] + 50, p2[1] - 50:p1[1] + 50]
+        # else:
+        #     if p1[1] < p2[1]:
+        #         frame[p2[0] - 50:p1[0] + 50, p1[1] - 50:p2[1] + 50]
+        #     else:
+        #         frame[p2[0] - 50:p1[0] + 50, p2[1] - 50:p1[1] + 50]
+        frame = imutils.resize(frame, width=1500)
         cv2.imshow("distance", frame)
         key = cv2.waitKey(1)
-        if key == ord('q') or finishTime < datetime.datetime.now():
+        if key == ord('q'):
             break
 
     cv2.destroyAllWindows()

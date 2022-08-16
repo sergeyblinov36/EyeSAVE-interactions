@@ -1,14 +1,23 @@
 # Created by pytest automatically.
 *.mp4
+*.jpg
+*.png
+*.rar
 /__pycache__
 /.idea
+/New folder
+/New folder (2)
+config.py
 /Facial_expressions/.idea
 /Facial_expressions/__pycache__
 /Facial_expressions/venv
 /Facial_expressions/.pytest_cache
+/Facial_expressions/model_weights.h5
+/Face_Detection/childImgs
+/Face_Detection/staffImgs
+/interaction/config.py
+/interaction/dbConnection.py
 /venv
-/Facial_expressions/.pytest_cache
-/Facial_expressions/.idea
 /Facialexpressions
 /Facial_expressions/train
 /Facial_expressions/test

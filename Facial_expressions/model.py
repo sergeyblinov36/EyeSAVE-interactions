@@ -1,7 +1,6 @@
 from tensorflow.keras.models import model_from_json
 from tensorflow.python.keras.backend import set_session
 import numpy as np
-
 import tensorflow as tf
 
 config = tf.compat.v1.ConfigProto()

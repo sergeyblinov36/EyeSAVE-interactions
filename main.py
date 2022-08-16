@@ -1,36 +1,51 @@
-from Facial_expressions.main import get_expression
-from Distance.distance import get_distance
-from Facial_expressions import image_manipulation
-import camera
+import datetime
 # import datetime
 import time
+import boto3
 import schedule
-import requests
+from botocore.exceptions import ClientError
+import camera
+import config
+from Distance.distance import get_distance
 
 
-# rtsp://tapocamnum1:Ss321352387@30.30.23.34:554/stream1
 def interaction():
     source = []
-    # source.append("inter2.mp4")
-    # source.append("test1.mp4")
-    # source.append("child1.mp4")
-    source.append("rtsp://tapocamnum1:Ss321352387@192.168.0.3:554/stream1")
-    source.append("rtsp://tapocamnum2:Ss321352387@192.168.0.8:554/stream1")
-    # source.append(0)
+    dateObj = datetime.datetime.now()
+    dateString = dateObj.strftime("%Y-%m-%d")
+    cam1 = f'cam1_{dateString}.mp4'
+    cam2 = f'cam2_{dateString}.mp4'
+    source.append(cam1)
+    source.append(cam2)
     camera.set_source(source)
-    # camera.set_source(0)
     get_distance()
-    # get_expression()
-    print("main")
+
+
+def download():
+    client_s3 = boto3.client(
+        's3',
+        aws_access_key_id=config.access_key,
+        aws_secret_access_key=config.access_secret
+    )
+    dateObj = datetime.datetime.now()
+    dateString = dateObj.strftime("%Y-%m-%d")
+    cam1 = f'cam1_{dateString}.mp4'
+    cam2 = f'cam2_{dateString}.mp4'
+    try:
+        client_s3.download_file(config.bucket_name, "Video5.mp4", cam1)
+        client_s3.download_file(config.bucket_name, "Video2_Trim.mp4", cam2)
+    except ClientError as e:
+        print(e)
+    except Exception as e:
+        print(e)
 
 
 def main():
-    # schedule.every().day.at("21:44").do(interaction)
-    # while True:
-    #     schedule.run_pending()
-    #     print("sleeping")
-    #     time.sleep(1)
-    interaction()
+    schedule.every().day.at("21:00")
+    schedule.every().day.at("22:30").do(interaction)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 
 main()

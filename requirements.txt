@@ -35,3 +35,6 @@ flatbuffers~=2.0
 astunparse~=1.6.3
 termcolor~=1.1.0
 zipp~=3.7.0
+boto3~=1.21.46
+botocore~=1.24.46
+python-dateutil~=2.8.2
